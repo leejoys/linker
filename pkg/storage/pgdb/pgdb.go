@@ -2,15 +2,10 @@ package pgdb
 
 import (
 	"context"
-	"errors"
 	"linker/pkg/storage"
 
-	"github.com/jackc/pgconn"
-	"github.com/jackc/pgerrcode"
 	"github.com/jackc/pgx/v4/pgxpool"
 )
-
-var ErrorDuplicateLink error = errors.New("SQLSTATE 23505")
 
 // Хранилище данных.
 type Store struct {
@@ -75,8 +70,38 @@ func (s *Store) GetShort(l storage.Link) (storage.Link, error) {
 	return l, err
 }
 
-//TODO check duplicate full link
-//TODO check duplicate short link
+//CountShort - проверка наличия сокращенной ссылки
+func (s *Store) CountShort(short string) (int, error) {
+	count := 0
+	err := s.db.QueryRow(context.Background(),
+		`SELECT 
+		count(*)
+		FROM links
+		WHERE shortlink=$1;`, short).Scan(
+		&count,
+	)
+	if err != nil {
+		return 0, err
+	}
+	return count, err
+}
+
+//CountLong - получение сокращенной ссылки по полной
+func (s *Store) CountLong(short string) (int, error) {
+	count := 0
+	err := s.db.QueryRow(context.Background(),
+		`SELECT 
+		count(*)
+		FROM links
+		WHERE longlink=$1;`, short).Scan(
+		&count,
+	)
+	if err != nil {
+		return 0, err
+	}
+	return count, err
+}
+
 //StoreLink - сохранение новой ссылки
 func (s *Store) StoreLink(l storage.Link) error {
 	_, err := s.db.Exec(context.Background(), `
@@ -87,14 +112,5 @@ func (s *Store) StoreLink(l storage.Link) error {
 		l.LongLink,
 		l.ShortLink)
 
-	if err != nil {
-		var pgErr *pgconn.PgError
-		if errors.As(err, &pgErr) {
-			switch pgErr.Code {
-			case pgerrcode.UniqueViolation:
-				err = ErrorDuplicateLink
-			}
-		}
-	}
 	return err
 }
