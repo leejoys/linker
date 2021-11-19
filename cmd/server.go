@@ -17,7 +17,7 @@ type server struct {
 	api *api.API
 }
 
-func dbfabric(s string) storage.Interface {
+func dbFabric(s string) storage.Interface {
 	if s == "memdb" {
 		return memdb.New()
 	}
@@ -36,7 +36,7 @@ func main() {
 	srv := server{}
 
 	// Инициализируем хранилище сервера БД
-	srv.db = dbfabric("memdb")
+	srv.db = dbFabric("memdb")
 
 	// Освобождаем ресурс
 	defer srv.db.Close()
