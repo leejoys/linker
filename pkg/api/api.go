@@ -97,7 +97,7 @@ func (api *API) storeLink(w http.ResponseWriter, r *http.Request) {
 		}
 		count, err := api.db.CountShort(string(short))
 		if err != nil {
-			http.Error(w, fmt.Sprintf("storeLink GetLong error: %s", err.Error()), http.StatusBadRequest)
+			http.Error(w, fmt.Sprintf("storeLink CountShort error: %s", err.Error()), http.StatusBadRequest)
 			return
 		}
 		if count > 0 {
