@@ -22,7 +22,7 @@ func main() {
 
 	//  Создаём объект базы данных PostgreSQL.
 	pwd := os.Getenv("pgpass")
-	connstr := "postgres://postgres:" + pwd + "@0.0.0.0/linksrv"
+	connstr := "postgres://postgres:" + pwd + "@0.0.0.0/linker"
 	db, err := pgdb.New(connstr)
 	if err != nil {
 		log.Fatal(err)
