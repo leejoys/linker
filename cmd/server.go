@@ -17,8 +17,8 @@ type server struct {
 	api *api.API
 }
 
-func dbFabric(s string) storage.Interface {
-	if s == "memdb" {
+func dbFabric(inmemory bool) storage.Interface {
+	if inmemory {
 		return memdb.New()
 	}
 	//  Создаём объект базы данных PostgreSQL.
@@ -32,11 +32,17 @@ func dbFabric(s string) storage.Interface {
 }
 
 func main() {
+
+	if len(os.Args) > 1 && os.Args[1] != "-inmemory" {
+		log.Fatal("usage go run server.go [-inmemory]")
+	}
+	isMemdb := len(os.Args) > 1 && os.Args[1] == "-inmemory"
+
 	// Создаём объект сервера
 	srv := server{}
 
-	// Инициализируем хранилище сервера БД
-	srv.db = dbFabric("memdb")
+	// Инициализируем БД
+	srv.db = dbFabric(isMemdb)
 
 	// Освобождаем ресурс
 	defer srv.db.Close()
