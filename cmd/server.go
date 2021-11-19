@@ -3,6 +3,7 @@ package main
 import (
 	"linker/pkg/api"
 	"linker/pkg/storage"
+	"linker/pkg/storage/memdb"
 	"linker/pkg/storage/pgdb"
 	"log"
 	"net/http"
@@ -16,10 +17,10 @@ type server struct {
 	api *api.API
 }
 
-func main() {
-	// Создаём объект сервера
-	srv := server{}
-
+func dbfabric(s string) storage.Interface {
+	if s == "memdb" {
+		return memdb.New()
+	}
 	//  Создаём объект базы данных PostgreSQL.
 	pwd := os.Getenv("pgpass")
 	connstr := "postgres://postgres:" + pwd + "@0.0.0.0/linker"
@@ -27,9 +28,15 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
+	return db
+}
+
+func main() {
+	// Создаём объект сервера
+	srv := server{}
 
 	// Инициализируем хранилище сервера БД
-	srv.db = db
+	srv.db = dbfabric("memdb")
 
 	// Освобождаем ресурс
 	defer srv.db.Close()

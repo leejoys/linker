@@ -17,11 +17,11 @@ type Store struct {
 }
 
 //New - Конструктор объекта хранилища.
-func New(connstr string) (*Store, error) {
+func New() *Store {
 	lts := make(map[string]string)
 	stl := make(map[string]string)
 	db := &inmemory{lts, stl}
-	return &Store{db: db}, nil
+	return &Store{db: db}
 }
 
 //Close - освобождение ресурса
