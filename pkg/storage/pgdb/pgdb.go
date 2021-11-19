@@ -86,14 +86,14 @@ func (s *Store) CountShort(short string) (int, error) {
 	return count, err
 }
 
-//CountLong - получение сокращенной ссылки по полной
-func (s *Store) CountLong(short string) (int, error) {
+//CountLong - проверка наличия полной ссылки
+func (s *Store) CountLong(long string) (int, error) {
 	count := 0
 	err := s.db.QueryRow(context.Background(),
 		`SELECT 
 		count(*)
 		FROM links
-		WHERE longlink=$1;`, short).Scan(
+		WHERE longlink=$1;`, long).Scan(
 		&count,
 	)
 	if err != nil {
