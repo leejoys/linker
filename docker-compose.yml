@@ -14,7 +14,7 @@ services:
       - database-data:/var/lib/postgresql/data/
   
   linker:
-    image: test
+    image: linker
     environment:
       - PGPASS=ozon
       - PGUSER=ozon
