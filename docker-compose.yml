@@ -15,6 +15,7 @@ services:
   
   linker:
     image: linker
+    restart: always
     environment:
       - PGPASS=ozon
       - PGUSER=ozon
