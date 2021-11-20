@@ -12,8 +12,6 @@ services:
      - database.env
     volumes:
       - database-data:/var/lib/postgresql/data/
-    ports:
-      - ${POSTGRES_PORT:-5432}:5432
   server:
     image: test
     environment:
@@ -22,4 +20,3 @@ services:
       - PGADDR=pg_db/linker
     ports:
       -8080:8080
-      -5432:5432
