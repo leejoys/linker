@@ -12,11 +12,12 @@ services:
      - database.env
     volumes:
       - database-data:/var/lib/postgresql/data/
-  server:
+  
+  linker:
     image: test
     environment:
       - PGPASS=ozon
       - PGUSER=ozon
       - PGADDR=pg_db/linker
     ports:
-      -8080:8080
+      - 8080:8080
