@@ -22,8 +22,11 @@ func dbFabric(inmemory bool) storage.Interface {
 		return memdb.New()
 	}
 	//  Создаём объект базы данных PostgreSQL.
-	pwd := os.Getenv("pgpass")
-	connstr := "postgres://postgres:" + pwd + "@0.0.0.0/linker"
+	pwd := os.Getenv("PGPASS")
+	user := os.Getenv("PGUSER")
+	addr := os.Getenv("PGADDR")
+	//user://postgres:pwd@postgres:5432/db
+	connstr := user + "://postgres:" + pwd + "@" + addr
 	db, err := pgdb.New(connstr)
 	if err != nil {
 		log.Fatal(err)
@@ -55,7 +58,7 @@ func main() {
 	go func() {
 		log.Fatal(http.ListenAndServe("0.0.0.0:8080", srv.api.Router()))
 	}()
-	log.Println("HTTP server is started on 0.0.0.0:8080")
+	log.Println("HTTP server is started")
 	signalCh := make(chan os.Signal, 1)
 	signal.Notify(signalCh, os.Interrupt)
 	<-signalCh
