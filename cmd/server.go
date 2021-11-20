@@ -34,7 +34,7 @@ func dbFabric(inmemory bool) storage.Interface {
 func main() {
 
 	if len(os.Args) > 1 && os.Args[1] != "-inmemory" {
-		log.Fatal("usage go run server.go [-inmemory]")
+		log.Fatal("usage: server [-inmemory]")
 	}
 	isMemdb := len(os.Args) > 1 && os.Args[1] == "-inmemory"
 
