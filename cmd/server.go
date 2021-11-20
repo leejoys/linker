@@ -53,9 +53,9 @@ func main() {
 	// Запускаем веб-сервер на порту 8080 на всех интерфейсах.
 	// Предаём серверу маршрутизатор запросов.
 	go func() {
-		log.Fatal(http.ListenAndServe("localhost:8080", srv.api.Router()))
+		log.Fatal(http.ListenAndServe("0.0.0.0:8080", srv.api.Router()))
 	}()
-	log.Println("HTTP server is started on localhost:8080")
+	log.Println("HTTP server is started on 0.0.0.0:8080")
 	signalCh := make(chan os.Signal, 1)
 	signal.Notify(signalCh, os.Interrupt)
 	<-signalCh
