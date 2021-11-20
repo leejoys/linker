@@ -22,12 +22,11 @@ func dbFabric(inmemory bool) storage.Interface {
 		return memdb.New()
 	}
 	//  Создаём объект базы данных PostgreSQL.
-	// pwd := os.Getenv("PGPASS")
-	// user := os.Getenv("PGUSER")
-	// addr := os.Getenv("PGADDR")
-	// //user://postgres:pwd@postgres:5432/db
-	// connstr := user + "://postgres:" + pwd + "@" + addr
-	connstr := "test://postgres:test@pg_db/test"
+	pwd := os.Getenv("PGPASS")
+	user := os.Getenv("PGUSER")
+	addr := os.Getenv("PGADDR")
+	//user://postgres:pwd@postgres:5432/db
+	connstr := user + "://postgres:" + pwd + "@" + addr
 	db, err := pgdb.New(connstr)
 	if err != nil {
 		log.Fatal(err)

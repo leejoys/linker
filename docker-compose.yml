@@ -18,6 +18,8 @@ services:
     environment:
       - PGPASS=ozon
       - PGUSER=ozon
-      - PGADDR=pg_db:5432/linker
+      - PGADDR=pg_db/linker
     ports:
       - 8080:8080
+    depends_on:
+      - pg_db
