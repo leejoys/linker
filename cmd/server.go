@@ -26,7 +26,7 @@ func dbFabric(inmemory bool) storage.Interface {
 	user := os.Getenv("PGUSER")
 	addr := os.Getenv("PGADDR")
 	//user://postgres:pwd@postgres:5432/db
-	connstr := user + "://postgres:" + pwd + "@" + addr
+	connstr := "postgres://" + user + ":" + pwd + "@" + addr
 	db, err := pgdb.New(connstr)
 	if err != nil {
 		log.Fatal(err)
