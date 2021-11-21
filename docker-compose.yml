@@ -12,16 +12,14 @@ services:
      - database.env
     volumes:
       - database-data:/var/lib/postgresql/data/
-    ports:
-      - 5432:5432
-  
+      
   linker:
     image: linker
     restart: always
     environment:
-      - PGPASS=test
-      - PGUSER=test
-      - PGADDR=pg_db:5432/test
+      - PGPASS=ozon
+      - PGUSER=ozon
+      - PGADDR=pg_db:5432/linker
     ports:
       - 8080:8080
     depends_on:
