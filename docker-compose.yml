@@ -14,7 +14,7 @@ services:
       - database-data:/var/lib/postgresql/data/
       
   linker:
-    image: linker
+    image: leejoys/linker
     restart: always
     environment:
       - PGPASS=ozon
