@@ -11,6 +11,7 @@ type inmemory struct {
 	ShortToLong map[string]string
 }
 
+//TODO RWMutex
 // Хранилище данных.
 type Store struct {
 	db *inmemory
@@ -24,7 +25,7 @@ func New() *Store {
 	return &Store{db: db}
 }
 
-//Close - освобождение ресурса
+//Close - освобождение ресурса. Заглушка для реализации интерфейса.
 func (s *Store) Close() {}
 
 //GetLong - получение полной ссылки по сокращенной
