@@ -65,7 +65,7 @@ func (api *API) getLink(w http.ResponseWriter, r *http.Request) {
 // сохранение ссылки
 func (api *API) storeLink(w http.ResponseWriter, r *http.Request) {
 	if r.ContentLength < 1 {
-		http.Error(w, fmt.Sprintln("storeLink error: ContentLength<1"), http.StatusBadRequest)
+		http.Error(w, "storeLink error: ContentLength<1", http.StatusBadRequest)
 		return
 	}
 	bLongLink, err := io.ReadAll(r.Body)
