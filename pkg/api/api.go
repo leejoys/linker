@@ -84,20 +84,14 @@ func (api *API) storeLink(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// for {
-	// 	l.ShortLink = generator.Do()
-	// 	count, err := api.db.CountShort(l.ShortLink)
-	// 	if err != nil {
-	// 		http.Error(w, fmt.Sprintf("storeLink CountShort error: %s", err.Error()), http.StatusBadRequest)
-	// 		return
-	// 	}
-	// 	if count == 0 {
-	// 		break
-	// 	}
-	// }
 	err = api.db.StoreLink(l)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		http.Error(w, fmt.Sprintf("storeLink db.StoreLink error: %s", err.Error()), http.StatusInternalServerError)
+		return
+	}
+	l, err = api.db.GetShort(l)
+	if err != nil {
+		http.Error(w, fmt.Sprintf("storeLink db.GetShort error: %s", err.Error()), http.StatusInternalServerError)
 		return
 	}
 	w.Write([]byte(l.ShortLink))
