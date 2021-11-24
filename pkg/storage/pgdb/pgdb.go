@@ -105,24 +105,24 @@ func (s *Store) CountLong(long string) (int, error) {
 }
 
 //StoreLink - сохранение новой ссылки
-func (s *Store) StoreLink(l storage.Link) error {
-	_, err := s.db.Exec(context.Background(), `
-	INSERT INTO links (
-		longlink,
-		shortlink) 
-	VALUES ($1,$2);`,
-		l.LongLink,
-		l.ShortLink)
+// func (s *Store) StoreLink(l storage.Link) error {
+// 	_, err := s.db.Exec(context.Background(), `
+// 	INSERT INTO links (
+// 		longlink,
+// 		shortlink)
+// 	VALUES ($1,$2);`,
+// 		l.LongLink,
+// 		l.ShortLink)
 
-	return err
-}
+// 	return err
+// }
 
 //todo
 //StoreLinkTX - сохранение новой ссылки через транзакцию
-func (s *Store) StoreLinkTX(l storage.Link) (bool, error) {
+func (s *Store) StoreLink(l storage.Link) error {
 	tx, err := s.db.BeginTx(context.Background(), pgx.TxOptions{})
 	if err != nil {
-		return false, err
+		return err
 	}
 	defer tx.Rollback(context.Background())
 	count := 0
@@ -137,13 +137,13 @@ func (s *Store) StoreLinkTX(l storage.Link) (bool, error) {
 			&count,
 		)
 		if err != nil {
-			return false, err
+			return err
 		}
-		if count > 0 {
-			continue
+		if count == 0 {
+			break
 		}
-		break
 	}
+
 	_, err = tx.Exec(context.Background(), `
 	INSERT INTO links (
 		longlink,
@@ -152,11 +152,11 @@ func (s *Store) StoreLinkTX(l storage.Link) (bool, error) {
 		l.LongLink,
 		l.ShortLink)
 	if err != nil {
-		return false, err
+		return err
 	}
 	err = tx.Commit(context.Background())
 	if err != nil {
-		return false, err
+		return err
 	}
-	return true, err
+	return err
 }

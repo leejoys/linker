@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"io"
 	"linker/pkg/storage"
-	"linker/pkg/storage/generator"
 	"net/http"
 
 	"github.com/gorilla/mux"
@@ -85,17 +84,17 @@ func (api *API) storeLink(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	for {
-		l.ShortLink = generator.Do()
-		count, err := api.db.CountShort(l.ShortLink)
-		if err != nil {
-			http.Error(w, fmt.Sprintf("storeLink CountShort error: %s", err.Error()), http.StatusBadRequest)
-			return
-		}
-		if count == 0 {
-			break
-		}
-	}
+	// for {
+	// 	l.ShortLink = generator.Do()
+	// 	count, err := api.db.CountShort(l.ShortLink)
+	// 	if err != nil {
+	// 		http.Error(w, fmt.Sprintf("storeLink CountShort error: %s", err.Error()), http.StatusBadRequest)
+	// 		return
+	// 	}
+	// 	if count == 0 {
+	// 		break
+	// 	}
+	// }
 	err = api.db.StoreLink(l)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)

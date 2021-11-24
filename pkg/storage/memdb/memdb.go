@@ -3,6 +3,7 @@ package memdb
 import (
 	"errors"
 	"linker/pkg/storage"
+	"linker/pkg/storage/generator"
 	"sync"
 )
 
@@ -77,6 +78,12 @@ func (s *Store) CountLong(long string) (int, error) {
 //StoreLink - сохранение новой ссылки
 func (s *Store) StoreLink(l storage.Link) error {
 	s.db.mutex.Lock()
+	for {
+		l.ShortLink = generator.Do()
+		if _, ok := s.db.shortToLong[l.ShortLink]; !ok {
+			break
+		}
+	}
 	s.db.shortToLong[l.ShortLink] = l.LongLink
 	s.db.longToShort[l.LongLink] = l.ShortLink
 	s.db.mutex.Unlock()
