@@ -104,20 +104,6 @@ func (s *Store) CountLong(long string) (int, error) {
 	return count, err
 }
 
-//StoreLink - сохранение новой ссылки
-// func (s *Store) StoreLink(l storage.Link) error {
-// 	_, err := s.db.Exec(context.Background(), `
-// 	INSERT INTO links (
-// 		longlink,
-// 		shortlink)
-// 	VALUES ($1,$2);`,
-// 		l.LongLink,
-// 		l.ShortLink)
-
-// 	return err
-// }
-
-//todo
 //StoreLinkTX - сохранение новой ссылки через транзакцию
 func (s *Store) StoreLink(l storage.Link) error {
 	tx, err := s.db.BeginTx(context.Background(), pgx.TxOptions{})
