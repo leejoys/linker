@@ -4,16 +4,10 @@ import (
 	"fmt"
 	"io"
 	"linker/pkg/storage"
-	"math/rand"
+	"linker/pkg/storage/generator"
 	"net/http"
-	"time"
 
 	"github.com/gorilla/mux"
-)
-
-const (
-	alphabet    = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890_"
-	shortLength = 10
 )
 
 // Программный интерфейс сервиса
@@ -91,25 +85,17 @@ func (api *API) storeLink(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	rand.Seed(time.Now().UnixNano())
-	abc := []byte(alphabet)
-	var short []byte
 	for {
-		short = []byte{}
-		for i := 1; i <= shortLength; i++ {
-			short = append(short, abc[rand.Intn(len(abc)-1)])
-		}
-		count, err := api.db.CountShort(string(short))
+		l.ShortLink = generator.Do()
+		count, err := api.db.CountShort(l.ShortLink)
 		if err != nil {
 			http.Error(w, fmt.Sprintf("storeLink CountShort error: %s", err.Error()), http.StatusBadRequest)
 			return
 		}
-		if count > 0 {
-			continue
+		if count == 0 {
+			break
 		}
-		break
 	}
-	l.ShortLink = string(short)
 	err = api.db.StoreLink(l)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
