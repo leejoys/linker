@@ -4,6 +4,7 @@ import (
 	"context"
 	"linker/pkg/storage"
 
+	"github.com/jackc/pgx/v4"
 	"github.com/jackc/pgx/v4/pgxpool"
 )
 
@@ -113,4 +114,52 @@ func (s *Store) StoreLink(l storage.Link) error {
 		l.ShortLink)
 
 	return err
+}
+
+//StoreLinkTX - сохранение новой ссылки через транзакцию
+func (s *Store) StoreLinkTX(l storage.Link) (bool, error) {
+	tx, err := s.db.BeginTx(context.Background(), pgx.TxOptions{})
+	if err != nil {
+		return false, err
+	}
+	defer tx.Rollback(context.Background())
+	count := 0
+	err = tx.QueryRow(context.Background(),
+		`SELECT 
+		count(*)
+		FROM links
+		WHERE longlink=$1;`, l.LongLink).Scan(
+		&count,
+	)
+	if err != nil {
+		return false, err
+	}
+	if count > 0 {
+
+	}
+
+	count = 0
+	err = tx.QueryRow(context.Background(),
+		`SELECT 
+		count(*)
+		FROM links
+		WHERE shortlink=$1;`, l.ShortLink).Scan(
+		&count,
+	)
+	if err != nil {
+		return false, err
+	}
+	if count > 0 {
+
+	}
+
+	_, err = s.db.Exec(context.Background(), `
+	INSERT INTO links (
+		longlink,
+		shortlink) 
+	VALUES ($1,$2);`,
+		l.LongLink,
+		l.ShortLink)
+
+	return true, err
 }
