@@ -3,6 +3,7 @@ package pgdb
 import (
 	"context"
 	"linker/pkg/storage"
+	"linker/pkg/storage/generator"
 
 	"github.com/jackc/pgx/v4"
 	"github.com/jackc/pgx/v4/pgxpool"
@@ -116,6 +117,7 @@ func (s *Store) StoreLink(l storage.Link) error {
 	return err
 }
 
+//todo
 //StoreLinkTX - сохранение новой ссылки через транзакцию
 func (s *Store) StoreLinkTX(l storage.Link) (bool, error) {
 	tx, err := s.db.BeginTx(context.Background(), pgx.TxOptions{})
@@ -135,31 +137,39 @@ func (s *Store) StoreLinkTX(l storage.Link) (bool, error) {
 		return false, err
 	}
 	if count > 0 {
-
+		//todo
 	}
-
 	count = 0
-	err = tx.QueryRow(context.Background(),
-		`SELECT 
+	for {
+		l.ShortLink = generator.Do()
+		err = tx.QueryRow(context.Background(),
+			`SELECT 
 		count(*)
 		FROM links
 		WHERE shortlink=$1;`, l.ShortLink).Scan(
-		&count,
-	)
-	if err != nil {
-		return false, err
+			&count,
+		)
+		if err != nil {
+			return false, err
+		}
+		if count > 0 {
+			continue
+		}
+		break
 	}
-	if count > 0 {
-
-	}
-
-	_, err = s.db.Exec(context.Background(), `
+	_, err = tx.Exec(context.Background(), `
 	INSERT INTO links (
 		longlink,
 		shortlink) 
 	VALUES ($1,$2);`,
 		l.LongLink,
 		l.ShortLink)
-
+	if err != nil {
+		return false, err
+	}
+	err = tx.Commit(context.Background())
+	if err != nil {
+		return false, err
+	}
 	return true, err
 }
