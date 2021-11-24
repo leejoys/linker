@@ -12,6 +12,7 @@ services:
      - database.env
     volumes:
       - database-data:/var/lib/postgresql/data/
+      - ./migrations/init_up.sql:/docker-entrypoint-initdb.d/init.sql
       
   linker:
     image: leejoys/linker
