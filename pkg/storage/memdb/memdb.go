@@ -8,9 +8,10 @@ import (
 
 //todo записывать в две разнонаправленных мапы
 type inmemory struct {
-	sync.RWMutex
-	LongToShort map[string]string
-	ShortToLong map[string]string
+	mutex       sync.Mutex
+	longToShort map[string]string
+	shortToLong map[string]string
+	dbmap       map[string]string
 }
 
 //TODO RWMutex
@@ -23,7 +24,8 @@ type Store struct {
 func New() *Store {
 	lts := make(map[string]string)
 	stl := make(map[string]string)
-	db := &inmemory{sync.RWMutex{}, lts, stl}
+	dbm := make(map[string]string)
+	db := &inmemory{sync.Mutex{}, lts, stl, dbm}
 	return &Store{db: db}
 }
 
@@ -32,9 +34,9 @@ func (s *Store) Close() {}
 
 //GetLong - получение полной ссылки по сокращенной
 func (s *Store) GetLong(l storage.Link) (storage.Link, error) {
-	s.db.RLock()
-	l.LongLink = s.db.ShortToLong[l.ShortLink]
-	s.db.RUnlock()
+	s.db.mutex.Lock()
+	l.LongLink = s.db.shortToLong[l.ShortLink]
+	s.db.mutex.Unlock()
 	if l.LongLink == "" {
 		return storage.Link{}, errors.New("memdb GetLong error: no data")
 	}
@@ -43,9 +45,9 @@ func (s *Store) GetLong(l storage.Link) (storage.Link, error) {
 
 //GetShort - получение сокращенной ссылки по полной
 func (s *Store) GetShort(l storage.Link) (storage.Link, error) {
-	s.db.RLock()
-	l.ShortLink = s.db.LongToShort[l.LongLink]
-	s.db.RUnlock()
+	s.db.mutex.Lock()
+	l.ShortLink = s.db.longToShort[l.LongLink]
+	s.db.mutex.Unlock()
 	if l.ShortLink == "" {
 		return storage.Link{}, errors.New("memdb GetShort error: no data")
 	}
@@ -54,29 +56,29 @@ func (s *Store) GetShort(l storage.Link) (storage.Link, error) {
 
 //CountShort - проверка наличия сокращенной ссылки
 func (s *Store) CountShort(short string) (int, error) {
-	s.db.RLock()
-	if _, ok := s.db.ShortToLong[short]; !ok {
+	s.db.mutex.Lock()
+	defer s.db.mutex.Unlock()
+	if _, ok := s.db.shortToLong[short]; !ok {
 		return 0, nil
 	}
-	s.db.RUnlock()
 	return 1, nil
 }
 
 //CountLong - проверка наличия полной ссылки
 func (s *Store) CountLong(long string) (int, error) {
-	s.db.RLock()
-	if _, ok := s.db.LongToShort[long]; !ok {
+	s.db.mutex.Lock()
+	defer s.db.mutex.Unlock()
+	if _, ok := s.db.longToShort[long]; !ok {
 		return 0, nil
 	}
-	s.db.RUnlock()
 	return 1, nil
 }
 
 //StoreLink - сохранение новой ссылки
 func (s *Store) StoreLink(l storage.Link) error {
-	s.db.Lock()
-	s.db.ShortToLong[l.ShortLink] = l.LongLink
-	s.db.LongToShort[l.LongLink] = l.ShortLink
-	s.db.Unlock()
+	s.db.mutex.Lock()
+	s.db.shortToLong[l.ShortLink] = l.LongLink
+	s.db.longToShort[l.LongLink] = l.ShortLink
+	s.db.mutex.Unlock()
 	return nil
 }
