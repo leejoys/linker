@@ -7,15 +7,13 @@ import (
 	"sync"
 )
 
-//todo записывать в две разнонаправленных мапы
 type inmemory struct {
-	mutex       sync.Mutex
+	mutex       sync.RWMutex
 	longToShort map[string]string
 	shortToLong map[string]string
 	dbmap       map[string]string
 }
 
-//TODO RWMutex
 // Хранилище данных.
 type Store struct {
 	db *inmemory
@@ -26,7 +24,7 @@ func New() *Store {
 	lts := make(map[string]string)
 	stl := make(map[string]string)
 	dbm := make(map[string]string)
-	db := &inmemory{sync.Mutex{}, lts, stl, dbm}
+	db := &inmemory{sync.RWMutex{}, lts, stl, dbm}
 	return &Store{db: db}
 }
 
@@ -35,9 +33,9 @@ func (s *Store) Close() {}
 
 //GetLong - получение полной ссылки по сокращенной
 func (s *Store) GetLong(l storage.Link) (storage.Link, error) {
-	s.db.mutex.Lock()
+	s.db.mutex.RLock()
 	l.LongLink = s.db.shortToLong[l.ShortLink]
-	s.db.mutex.Unlock()
+	s.db.mutex.RUnlock()
 	if l.LongLink == "" {
 		return storage.Link{}, errors.New("memdb GetLong error: no data")
 	}
@@ -46,9 +44,9 @@ func (s *Store) GetLong(l storage.Link) (storage.Link, error) {
 
 //GetShort - получение сокращенной ссылки по полной
 func (s *Store) GetShort(l storage.Link) (storage.Link, error) {
-	s.db.mutex.Lock()
+	s.db.mutex.RLock()
 	l.ShortLink = s.db.longToShort[l.LongLink]
-	s.db.mutex.Unlock()
+	s.db.mutex.RUnlock()
 	if l.ShortLink == "" {
 		return storage.Link{}, errors.New("memdb GetShort error: no data")
 	}
@@ -57,8 +55,8 @@ func (s *Store) GetShort(l storage.Link) (storage.Link, error) {
 
 //CountShort - проверка наличия сокращенной ссылки
 func (s *Store) CountShort(short string) (int, error) {
-	s.db.mutex.Lock()
-	defer s.db.mutex.Unlock()
+	s.db.mutex.RLock()
+	defer s.db.mutex.RUnlock()
 	if _, ok := s.db.shortToLong[short]; !ok {
 		return 0, nil
 	}
@@ -67,8 +65,8 @@ func (s *Store) CountShort(short string) (int, error) {
 
 //CountLong - проверка наличия полной ссылки
 func (s *Store) CountLong(long string) (int, error) {
-	s.db.mutex.Lock()
-	defer s.db.mutex.Unlock()
+	s.db.mutex.RLock()
+	defer s.db.mutex.RUnlock()
 	if _, ok := s.db.longToShort[long]; !ok {
 		return 0, nil
 	}
