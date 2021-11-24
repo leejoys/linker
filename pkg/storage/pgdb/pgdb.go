@@ -126,20 +126,7 @@ func (s *Store) StoreLinkTX(l storage.Link) (bool, error) {
 	}
 	defer tx.Rollback(context.Background())
 	count := 0
-	err = tx.QueryRow(context.Background(),
-		`SELECT 
-		count(*)
-		FROM links
-		WHERE longlink=$1;`, l.LongLink).Scan(
-		&count,
-	)
-	if err != nil {
-		return false, err
-	}
-	if count > 0 {
-		//todo
-	}
-	count = 0
+
 	for {
 		l.ShortLink = generator.Do()
 		err = tx.QueryRow(context.Background(),
