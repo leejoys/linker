@@ -11,7 +11,6 @@ type inmemory struct {
 	mutex       sync.RWMutex
 	longToShort map[string]string
 	shortToLong map[string]string
-	dbmap       map[string]string
 }
 
 // Хранилище данных.
@@ -23,8 +22,7 @@ type Store struct {
 func New() *Store {
 	lts := make(map[string]string)
 	stl := make(map[string]string)
-	dbm := make(map[string]string)
-	db := &inmemory{sync.RWMutex{}, lts, stl, dbm}
+	db := &inmemory{sync.RWMutex{}, lts, stl}
 	return &Store{db: db}
 }
 
