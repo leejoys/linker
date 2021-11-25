@@ -1,6 +1,7 @@
 package memdb
 
 import (
+	"context"
 	"errors"
 	"linker/pkg/storage"
 	"linker/pkg/storage/generator"
@@ -30,7 +31,7 @@ func New() *Store {
 func (s *Store) Close() {}
 
 //GetLong - получение полной ссылки по сокращенной
-func (s *Store) GetLong(l storage.Link) (storage.Link, error) {
+func (s *Store) GetLong(ctx context.Context, l storage.Link) (storage.Link, error) {
 	s.db.mutex.RLock()
 	l.LongLink = s.db.shortToLong[l.ShortLink]
 	s.db.mutex.RUnlock()
@@ -41,7 +42,7 @@ func (s *Store) GetLong(l storage.Link) (storage.Link, error) {
 }
 
 //GetShort - получение сокращенной ссылки по полной
-func (s *Store) GetShort(l storage.Link) (storage.Link, error) {
+func (s *Store) GetShort(ctx context.Context, l storage.Link) (storage.Link, error) {
 	s.db.mutex.RLock()
 	l.ShortLink = s.db.longToShort[l.LongLink]
 	s.db.mutex.RUnlock()
@@ -52,7 +53,7 @@ func (s *Store) GetShort(l storage.Link) (storage.Link, error) {
 }
 
 //CountShort - проверка наличия сокращенной ссылки
-func (s *Store) CountShort(short string) (int, error) {
+func (s *Store) CountShort(ctx context.Context, short string) (int, error) {
 	s.db.mutex.RLock()
 	defer s.db.mutex.RUnlock()
 	if _, ok := s.db.shortToLong[short]; !ok {
@@ -62,7 +63,7 @@ func (s *Store) CountShort(short string) (int, error) {
 }
 
 //CountLong - проверка наличия полной ссылки
-func (s *Store) CountLong(long string) (int, error) {
+func (s *Store) CountLong(ctx context.Context, long string) (int, error) {
 	s.db.mutex.RLock()
 	defer s.db.mutex.RUnlock()
 	if _, ok := s.db.longToShort[long]; !ok {
@@ -72,7 +73,7 @@ func (s *Store) CountLong(long string) (int, error) {
 }
 
 //StoreLink - сохранение новой ссылки
-func (s *Store) StoreLink(l storage.Link) error {
+func (s *Store) StoreLink(ctx context.Context, l storage.Link) error {
 	s.db.mutex.Lock()
 	for {
 		l.ShortLink = generator.Do()

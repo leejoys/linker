@@ -1,6 +1,7 @@
 package api
 
 import (
+	"context"
 	"fmt"
 	"io"
 	"linker/pkg/storage"
@@ -11,16 +12,18 @@ import (
 
 // Программный интерфейс сервиса
 type API struct {
-	db storage.Interface
-	r  *mux.Router
+	db  storage.Interface
+	r   *mux.Router
+	ctx context.Context
 }
 
 // Конструктор объекта API
-func New(db storage.Interface) *API {
+func New(ctx context.Context, db storage.Interface) *API {
 	api := API{
 		db: db,
 	}
 	api.r = mux.NewRouter()
+	api.ctx = ctx
 	api.endpoints()
 	return &api
 }
@@ -47,7 +50,7 @@ func (api *API) getLink(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "invalid link", http.StatusBadRequest)
 		return
 	}
-	l, err := api.db.GetLong(l)
+	l, err := api.db.GetLong(api.ctx, l)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -69,13 +72,13 @@ func (api *API) storeLink(w http.ResponseWriter, r *http.Request) {
 
 	l := storage.Link{LongLink: string(bLongLink)}
 
-	count, err := api.db.CountLong(l.LongLink)
+	count, err := api.db.CountLong(api.ctx, l.LongLink)
 	if err != nil {
 		http.Error(w, fmt.Sprintf("storeLink CountLong error: %s", err.Error()), http.StatusBadRequest)
 		return
 	}
 	if count > 0 {
-		exist, err := api.db.GetShort(l)
+		exist, err := api.db.GetShort(api.ctx, l)
 		if err != nil {
 			http.Error(w, fmt.Sprintf("storeLink GetShort error: %s", err.Error()), http.StatusBadRequest)
 			return
@@ -84,12 +87,12 @@ func (api *API) storeLink(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = api.db.StoreLink(l)
+	err = api.db.StoreLink(api.ctx, l)
 	if err != nil {
 		http.Error(w, fmt.Sprintf("storeLink db.StoreLink error: %s", err.Error()), http.StatusInternalServerError)
 		return
 	}
-	l, err = api.db.GetShort(l)
+	l, err = api.db.GetShort(api.ctx, l)
 	if err != nil {
 		http.Error(w, fmt.Sprintf("storeLink db.GetShort error: %s", err.Error()), http.StatusInternalServerError)
 		return

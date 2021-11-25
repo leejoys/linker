@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"linker/pkg/api"
 	"linker/pkg/storage"
 	"linker/pkg/storage/memdb"
@@ -9,6 +10,7 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"time"
 )
 
 // Сервер линкера.
@@ -17,7 +19,7 @@ type server struct {
 	api *api.API
 }
 
-func dbFabric(inmemory bool) storage.Interface {
+func dbFabric(ctx context.Context, inmemory bool) storage.Interface {
 	if inmemory {
 		return memdb.New()
 	}
@@ -27,7 +29,7 @@ func dbFabric(inmemory bool) storage.Interface {
 	addr := os.Getenv("PGADDR")
 	//postgres://user:pwd@postgres:5432/db
 	connstr := "postgres://" + user + ":" + pwd + "@" + addr
-	db, err := pgdb.New(connstr)
+	db, err := pgdb.New(ctx, connstr)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -43,15 +45,17 @@ func main() {
 
 	// Создаём объект сервера
 	srv := server{}
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*30)
+	defer cancel()
 
 	// Инициализируем БД
-	srv.db = dbFabric(isMemdb)
+	srv.db = dbFabric(ctx, isMemdb)
 
 	// Освобождаем ресурс
 	defer srv.db.Close()
 
 	// Создаём объект API и регистрируем обработчики.
-	srv.api = api.New(srv.db)
+	srv.api = api.New(ctx, srv.db)
 
 	// Запускаем веб-сервер на порту 8080 на всех интерфейсах.
 	// Предаём серверу маршрутизатор запросов.

@@ -1,6 +1,7 @@
 package api
 
 import (
+	"context"
 	"io/ioutil"
 	"linker/pkg/storage"
 	"linker/pkg/storage/memdb"
@@ -15,7 +16,7 @@ func TestAPI_storeLink(t *testing.T) {
 	dbase := memdb.New()
 	defer dbase.Close()
 
-	api := New(dbase)
+	api := New(context.Background(), dbase)
 	// Создаём HTTP-запрос.
 	req := httptest.NewRequest(http.MethodPost, "/links",
 		strings.NewReader("https://habr.com/ru/news/t/568128/"))
@@ -73,6 +74,7 @@ func TestAPI_getLink(t *testing.T) {
 	// Создаём чистый объект API для теста.
 	dbase := memdb.New()
 	defer dbase.Close()
+	ctx := context.Background()
 
 	links := []storage.Link{
 		{ShortLink: "1234567890",
@@ -81,10 +83,10 @@ func TestAPI_getLink(t *testing.T) {
 			LongLink: "https://habr.com/ru/news/t/568128/"},
 	}
 	for _, l := range links {
-		dbase.StoreLink(l)
+		dbase.StoreLink(ctx, l)
 	}
 
-	api := New(dbase)
+	api := New(ctx, dbase)
 	// Создаём HTTP-запрос.
 	req := httptest.NewRequest(http.MethodGet, "/links/1234567890", nil)
 	// Создаём объект для записи ответа обработчика.

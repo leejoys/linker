@@ -15,14 +15,14 @@ type Store struct {
 }
 
 //New - Конструктор объекта хранилища.
-func New(connstr string) (*Store, error) {
+func New(ctx context.Context, connstr string) (*Store, error) {
 
 	db, err := pgxpool.Connect(context.Background(), connstr)
 	if err != nil {
 		return nil, err
 	}
 	// проверка связи с БД
-	err = db.Ping(context.Background())
+	err = db.Ping(ctx)
 	if err != nil {
 		db.Close()
 		return nil, err
@@ -37,9 +37,9 @@ func (s *Store) Close() {
 }
 
 //GetLong - получение полной ссылки по сокращенной
-func (s *Store) GetLong(l storage.Link) (storage.Link, error) {
+func (s *Store) GetLong(ctx context.Context, l storage.Link) (storage.Link, error) {
 
-	err := s.db.QueryRow(context.Background(),
+	err := s.db.QueryRow(ctx,
 		`SELECT 
 	links.longlink
 	FROM links
@@ -55,9 +55,9 @@ func (s *Store) GetLong(l storage.Link) (storage.Link, error) {
 }
 
 //GetShort - получение сокращенной ссылки по полной
-func (s *Store) GetShort(l storage.Link) (storage.Link, error) {
+func (s *Store) GetShort(ctx context.Context, l storage.Link) (storage.Link, error) {
 
-	err := s.db.QueryRow(context.Background(),
+	err := s.db.QueryRow(ctx,
 		`SELECT 
 	links.shortlink
 	FROM links
@@ -73,9 +73,9 @@ func (s *Store) GetShort(l storage.Link) (storage.Link, error) {
 }
 
 //CountShort - проверка наличия сокращенной ссылки
-func (s *Store) CountShort(short string) (int, error) {
+func (s *Store) CountShort(ctx context.Context, short string) (int, error) {
 	count := 0
-	err := s.db.QueryRow(context.Background(),
+	err := s.db.QueryRow(ctx,
 		`SELECT 
 		count(*)
 		FROM links
@@ -89,9 +89,9 @@ func (s *Store) CountShort(short string) (int, error) {
 }
 
 //CountLong - проверка наличия полной ссылки
-func (s *Store) CountLong(long string) (int, error) {
+func (s *Store) CountLong(ctx context.Context, long string) (int, error) {
 	count := 0
-	err := s.db.QueryRow(context.Background(),
+	err := s.db.QueryRow(ctx,
 		`SELECT 
 		count(*)
 		FROM links
@@ -105,17 +105,17 @@ func (s *Store) CountLong(long string) (int, error) {
 }
 
 //StoreLinkTX - сохранение новой ссылки через транзакцию
-func (s *Store) StoreLink(l storage.Link) error {
+func (s *Store) StoreLink(ctx context.Context, l storage.Link) error {
 	tx, err := s.db.BeginTx(context.Background(), pgx.TxOptions{})
 	if err != nil {
 		return err
 	}
-	defer tx.Rollback(context.Background())
+	defer tx.Rollback(ctx)
 	count := 0
 
 	for {
 		l.ShortLink = generator.Do()
-		err = tx.QueryRow(context.Background(),
+		err = tx.QueryRow(ctx,
 			`SELECT 
 		count(*)
 		FROM links
@@ -130,7 +130,7 @@ func (s *Store) StoreLink(l storage.Link) error {
 		}
 	}
 
-	_, err = tx.Exec(context.Background(), `
+	_, err = tx.Exec(ctx, `
 	INSERT INTO links (
 		longlink,
 		shortlink) 
@@ -140,7 +140,7 @@ func (s *Store) StoreLink(l storage.Link) error {
 	if err != nil {
 		return err
 	}
-	err = tx.Commit(context.Background())
+	err = tx.Commit(ctx)
 	if err != nil {
 		return err
 	}
