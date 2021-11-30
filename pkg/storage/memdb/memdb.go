@@ -16,15 +16,16 @@ type inmemory struct {
 
 // Хранилище данных.
 type Store struct {
-	db *inmemory
+	db        *inmemory
+	generator *generator.Generator
 }
 
 //New - Конструктор объекта хранилища.
-func New() *Store {
+func New(g *generator.Generator) *Store {
 	lts := make(map[string]string)
 	stl := make(map[string]string)
 	db := &inmemory{sync.RWMutex{}, lts, stl}
-	return &Store{db: db}
+	return &Store{db: db, generator: g}
 }
 
 //Close - освобождение ресурса. Заглушка для реализации интерфейса.
@@ -76,7 +77,7 @@ func (s *Store) CountLong(ctx context.Context, long string) (int, error) {
 func (s *Store) StoreLink(ctx context.Context, l storage.Link) error {
 	s.db.mutex.Lock()
 	for {
-		l.ShortLink = generator.Do()
+		l.ShortLink = s.generator.Do()
 		if _, ok := s.db.shortToLong[l.ShortLink]; !ok {
 			break
 		}

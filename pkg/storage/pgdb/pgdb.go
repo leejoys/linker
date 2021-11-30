@@ -11,11 +11,12 @@ import (
 
 // Хранилище данных.
 type Store struct {
-	db *pgxpool.Pool
+	db        *pgxpool.Pool
+	generator *generator.Generator
 }
 
 //New - Конструктор объекта хранилища.
-func New(ctx context.Context, connstr string) (*Store, error) {
+func New(ctx context.Context, g *generator.Generator, connstr string) (*Store, error) {
 
 	db, err := pgxpool.Connect(context.Background(), connstr)
 	if err != nil {
@@ -28,7 +29,7 @@ func New(ctx context.Context, connstr string) (*Store, error) {
 		return nil, err
 	}
 
-	return &Store{db: db}, nil
+	return &Store{db: db, generator: g}, nil
 }
 
 //Close - освобождение ресурса
@@ -114,7 +115,7 @@ func (s *Store) StoreLink(ctx context.Context, l storage.Link) error {
 	count := 0
 
 	for {
-		l.ShortLink = generator.Do()
+		l.ShortLink = s.generator.Do()
 		err = tx.QueryRow(ctx,
 			`SELECT 
 		count(*)

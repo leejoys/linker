@@ -4,6 +4,7 @@ import (
 	"context"
 	"io/ioutil"
 	"linker/pkg/storage"
+	"linker/pkg/storage/generator"
 	"linker/pkg/storage/memdb"
 	"net/http"
 	"net/http/httptest"
@@ -13,7 +14,10 @@ import (
 
 func TestAPI_storeLink(t *testing.T) {
 	// Создаём чистый объект API для теста.
-	dbase := memdb.New()
+	g := generator.New(
+		"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890_",
+		10)
+	dbase := memdb.New(g)
 	defer dbase.Close()
 
 	api := New(context.Background(), dbase)
@@ -72,7 +76,10 @@ func TestAPI_storeLink(t *testing.T) {
 
 func TestAPI_getLink(t *testing.T) {
 	// Создаём чистый объект API для теста.
-	dbase := memdb.New()
+	g := generator.New(
+		"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890_",
+		10)
+	dbase := memdb.New(g)
 	defer dbase.Close()
 	ctx := context.Background()
 

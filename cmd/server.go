@@ -4,6 +4,7 @@ import (
 	"context"
 	"linker/pkg/api"
 	"linker/pkg/storage"
+	"linker/pkg/storage/generator"
 	"linker/pkg/storage/memdb"
 	"linker/pkg/storage/pgdb"
 	"log"
@@ -13,15 +14,20 @@ import (
 	"time"
 )
 
+const (
+	alphabet    = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890_"
+	shortLength = 10
+)
+
 // Сервер линкера.
 type server struct {
 	db  storage.Interface
 	api *api.API
 }
 
-func dbFabric(ctx context.Context, inmemory bool) storage.Interface {
+func dbFabric(ctx context.Context, g *generator.Generator, inmemory bool) storage.Interface {
 	if inmemory {
-		return memdb.New()
+		return memdb.New(g)
 	}
 	//  Создаём объект базы данных PostgreSQL.
 	pwd := os.Getenv("PGPASS")
@@ -29,7 +35,7 @@ func dbFabric(ctx context.Context, inmemory bool) storage.Interface {
 	addr := os.Getenv("PGADDR")
 	//postgres://user:pwd@postgres:5432/db
 	connstr := "postgres://" + user + ":" + pwd + "@" + addr
-	db, err := pgdb.New(ctx, connstr)
+	db, err := pgdb.New(ctx, g, connstr)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -48,8 +54,11 @@ func main() {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*30)
 	defer cancel()
 
+	//Создаем генератор
+	g := generator.New(alphabet, shortLength)
+
 	// Инициализируем БД
-	srv.db = dbFabric(ctx, isMemdb)
+	srv.db = dbFabric(ctx, g, isMemdb)
 
 	// Освобождаем ресурс
 	defer srv.db.Close()
