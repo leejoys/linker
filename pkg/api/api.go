@@ -42,6 +42,8 @@ func (api *API) Router() *mux.Router {
 	return api.r
 }
 
+//todo context.WithTimeout
+
 // получение полной ссылки по сокращенной
 func (api *API) getLink(w http.ResponseWriter, r *http.Request) {
 	l := storage.Link{}

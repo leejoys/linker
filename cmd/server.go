@@ -49,6 +49,7 @@ func main() {
 	}
 	isMemdb := len(os.Args) > 1 && os.Args[1] == "-inmemory"
 
+	//todo gracefull shutdown
 	// Создаём объект сервера
 	srv := server{}
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*30)
